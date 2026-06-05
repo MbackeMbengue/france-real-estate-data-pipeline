@@ -18,10 +18,15 @@ __pycache__/
 Thumbs.db
 
 # Data files
-data/raw/
+data/raw/*
+data/processed/*
 
 # Logs
 *.log
 
 # Parquet temporaires
 *.tmp
+
+#Garder les dossiers
+!data/raw/ .gitkeep
+!data/processed/ .gitkeep
