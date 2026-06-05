@@ -6,15 +6,20 @@ from rich.table import Table
 from rich.panel import Panel
 
 
+# Chemins des fichiers utilises par le pipeline.
+# RAW_FILE correspond au fichier DVF source, tandis que les autres chemins
+# contiennent les exports générés après filtrage, nettoyage et aggregation.
 RAW_FILE = Path("data/raw/dvf_2025.txt")
 OUTPUT_RAW_91 = Path("data/processed/dvf_91_2025.parquet")
 OUTPUT_CLEAN_91 = Path("data/processed/dvf_91_2025_clean.parquet")
 OUTPUT_PRIX_COMMUNE = Path("data/processed/prix_commune_91.parquet")
 
+# Console Rich partagee par toutes les fonctions d'affichage.
 console = Console()
 
 
 def display_dimensions(df: pd.DataFrame, df_91: pd.DataFrame) -> None:
+    """Affiche le nombre de lignes et de colonnes avant/apres filtrage."""
     table = Table(title="Dimensions des données")
     table.add_column("Jeu de données", style="bold")
     table.add_column("Lignes", justify="right")
@@ -27,10 +32,12 @@ def display_dimensions(df: pd.DataFrame, df_91: pd.DataFrame) -> None:
 
 
 def display_type_local_counts(df_91: pd.DataFrame) -> None:
+    """Affiche la repartition des lignes par type de bien immobilier."""
     table = Table(title="Répartition des types de biens")
     table.add_column("Type local", style="bold")
     table.add_column("Nombre de lignes", justify="right")
 
+    # dropna=False permet aussi de compter les lignes sans type local renseigne.
     counts = df_91["Type local"].value_counts(dropna=False)
 
     for type_local, count in counts.items():
@@ -40,6 +47,8 @@ def display_type_local_counts(df_91: pd.DataFrame) -> None:
 
 
 def display_price_stats(df_clean: pd.DataFrame) -> None:
+    """Affiche les statistiques descriptives du prix au m2 par type de bien."""
+    # describe() calcule automatiquement count, mean, min, max et les quartiles.
     stats = df_clean.groupby("Type local")["prix_m2"].describe()
 
     table = Table(title="Statistiques du prix au m²")
@@ -64,6 +73,7 @@ def display_price_stats(df_clean: pd.DataFrame) -> None:
 
 
 def display_avg_price_by_type(df_clean: pd.DataFrame) -> None:
+    """Affiche le prix moyen au m2 pour chaque type de bien."""
     avg_prices = (
         df_clean.groupby("Type local")["prix_m2"]
         .mean()
@@ -81,6 +91,9 @@ def display_avg_price_by_type(df_clean: pd.DataFrame) -> None:
 
 
 def display_top_communes(prix_commune: pd.DataFrame) -> None:
+    """Affiche les communes les plus cheres parmi celles avec assez de ventes."""
+    # On garde seulement les communes avec au moins 20 ventes pour eviter
+    # qu'une commune avec tres peu de transactions domine le classement.
     top_communes = prix_commune[prix_commune["nb_ventes"] >= 20].sort_values(
         "prix_m2_moyen",
         ascending=False
@@ -88,7 +101,7 @@ def display_top_communes(prix_commune: pd.DataFrame) -> None:
 
     table = Table(title="Top 20 communes les plus chères")
     table.add_column("Commune", style="bold", no_wrap=True)
-    table.add_column("Type local",no_wrap=True)
+    table.add_column("Type local", no_wrap=True)
     table.add_column("Nb ventes", justify="right")
     table.add_column("Prix moyen m²", justify="right")
     table.add_column("Prix médian m²", justify="right")
@@ -106,6 +119,7 @@ def display_top_communes(prix_commune: pd.DataFrame) -> None:
 
 
 def main() -> None:
+    """Execute toutes les etapes du pipeline DVF pour le departement 91."""
     console.print(
         Panel.fit(
             "Pipeline local d'ingestion DVF 2025 - Essonne 91",
@@ -114,13 +128,18 @@ def main() -> None:
         )
     )
 
+    # Arret explicite si le fichier source n'a pas encore été place dans data/raw.
     if not RAW_FILE.exists():
         raise FileNotFoundError(f"Fichier introuvable : {RAW_FILE}")
 
     console.rule("1. Lecture du fichier brut")
+    # Le fichier DVF est séparé par des pipes ("|"). low_memory=False aide Pandas
+    # a inferer les types de colonnes de facon plus stable sur un gros fichier.
     df = pd.read_csv(RAW_FILE, sep="|", low_memory=False)
 
     console.rule("2. Filtrage du département 91")
+    # On copie le sous-ensemble pour pouvoir le modifier ensuite sans declencher
+    # d'avertissement Pandas lie aux vues de DataFrame.
     df_91 = df[df["Code departement"] == "91"].copy()
 
     display_dimensions(df, df_91)
@@ -128,21 +147,29 @@ def main() -> None:
 
     console.rule("3. Nettoyage des données")
 
+    # Dans les fichiers DVF francais, les decimales sont souvent encodees avec
+    # une virgule. On remplace la virgule par un point avant conversion numerique.
     df_91["Valeur fonciere"] = (
         df_91["Valeur fonciere"]
         .astype(str)
         .str.replace(",", ".", regex=False)
     )
 
+    # Les valeurs invalides deviennent NaN grace a errors="coerce".
+    # Elles seront ensuite filtrees avec les autres lignes inutilisables.
     df_91["Valeur fonciere"] = pd.to_numeric(
         df_91["Valeur fonciere"],
         errors="coerce",
     )
 
+    # Pour ce prototype, on limite l'analyse aux logements classiques.
+    # Les dependances, terrains ou locaux d'activite ne sont pas comparables.
     df_91_clean = df_91[
         df_91["Type local"].isin(["Appartement", "Maison"])
     ].copy()
 
+    # Le prix au m2 n'a de sens que si la surface et la valeur fonciere sont
+    # presentes et strictement positives.
     df_91_clean = df_91_clean[
         df_91_clean["Surface reelle bati"].notna()
         & (df_91_clean["Surface reelle bati"] > 0)
@@ -154,8 +181,11 @@ def main() -> None:
         df_91_clean["Valeur fonciere"] / df_91_clean["Surface reelle bati"]
     )
 
+    # On memorise la taille avant/apres filtrage pour mesurer l'effet du nettoyage.
     before_outliers = len(df_91_clean)
 
+    # Filtrage simple des valeurs aberrantes : un prix au m2 trop faible ou trop
+    # eleve indique souvent une transaction atypique ou une donnee mal renseignee.
     df_91_clean = df_91_clean[
         (df_91_clean["prix_m2"] >= 500)
         & (df_91_clean["prix_m2"] <= 15_000)
@@ -178,6 +208,8 @@ def main() -> None:
 
     console.rule("4. Création de la table analytique par commune")
 
+    # Cette table resume les transactions par commune et type de bien.
+    # Elle servira de base pour les analyses ou visualisations suivantes.
     prix_commune = (
         df_91_clean
         .groupby(["Commune", "Type local"])
@@ -193,8 +225,11 @@ def main() -> None:
 
     console.rule("5. Sauvegarde des fichiers Parquet")
 
+    # Creation du dossier de sortie si c'est la premiere execution du pipeline.
     OUTPUT_RAW_91.parent.mkdir(parents=True, exist_ok=True)
 
+    # Le format Parquet conserve les types de colonnes et se lit rapidement
+    # dans les outils data comme Pandas, Spark, BigQuery ou DuckDB.
     df_91.to_parquet(OUTPUT_RAW_91, index=False)
     df_91_clean.to_parquet(OUTPUT_CLEAN_91, index=False)
     prix_commune.to_parquet(OUTPUT_PRIX_COMMUNE, index=False)
@@ -209,7 +244,6 @@ def main() -> None:
             style="bold green",
         )
     )
-
 
 if __name__ == "__main__":
     main()
