@@ -42,14 +42,4 @@ Construire un pipeline complet permettant d'analyser le prix immobilier au m² e
 - Purchasable surface estimation
 
 ## Architecture
-DVF + INSEE
-    ↓
-Python
-    ↓
-Parquet
-    ↓
-Docker
-    ↓
-   GCS
-    ↓
-BigQuery
+DVF + INSEE ==> Python ==> Parquet ==> Docker ==> GCS ==> BigQuery
