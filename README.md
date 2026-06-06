@@ -40,3 +40,16 @@ Construire un pipeline complet permettant d'analyser le prix immobilier au m² e
 - Median income by municipality
 - Real-estate purchasing power indicator
 - Purchasable surface estimation
+
+## Architecture
+DVF + INSEE
+    ↓
+Python
+    ↓
+Parquet
+    ↓
+Docker
+    ↓
+   GCS
+    ↓
+BigQuery

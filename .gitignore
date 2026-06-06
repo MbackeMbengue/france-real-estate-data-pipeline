@@ -30,3 +30,12 @@ data/processed/*
 #Garder les dossiers
 !data/raw/ .gitkeep
 !data/processed/ .gitkeep
+
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/.terraform.lock.hcl
+
+# Variables sensibles
+terraform/*.tfvars
