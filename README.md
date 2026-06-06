@@ -1,4 +1,4 @@
-# France Real Estate Data Pipeline
+# France Real Estate Data Pipeline - FRED
 
 Projet Data Engineering autour des données immobilières françaises DVF.
 
@@ -29,7 +29,14 @@ Construire un pipeline complet permettant d'analyser le prix immobilier au m² e
 - PyArrow
 - Parquet
 - Git
-- Docker à venir
+- Docker
 - Airflow à venir
 - BigQuery à venir
 - dbt à venir
+
+## Business Metrics
+
+- Average price per square meter
+- Median income by municipality
+- Real-estate purchasing power indicator
+- Purchasable surface estimation
