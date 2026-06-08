@@ -12,7 +12,14 @@ with DAG(
     tags=["fred", "data-engineering"],
 ) as dag:
 
+    run_ingest_dvf = BashOperator(
+        task_id="run_ingest_dvf",
+        bash_command="cd /opt/airflow && python src/ingest_dvf.py",
+    )
+
     run_pouvoir_achat = BashOperator(
         task_id="run_pouvoir_achat",
         bash_command="cd /opt/airflow && python src/pouvoir_achat.py",
     )
+
+    run_ingest_dvf >> run_pouvoir_achat
