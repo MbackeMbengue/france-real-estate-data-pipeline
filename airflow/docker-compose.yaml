@@ -2,17 +2,19 @@ version: "3"
 
 services:
   airflow:
-    image: apache/airflow:2.9.3
+    build: .
     container_name: fred-airflow
     environment:
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
       - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
+      - CLOUDSDK_CONFIG=/opt/airflow/gcloud
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
       - ../src:/opt/airflow/src
       - ../data:/opt/airflow/data
+      - ~/.config/gcloud:/opt/airflow/gcloud
     ports:
       - "8080:8080"
     command: standalone

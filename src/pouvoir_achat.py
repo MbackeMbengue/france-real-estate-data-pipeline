@@ -127,16 +127,18 @@ def main() -> None:
 
     display_top_surface(final)
 
+    final = final.rename(
+        columns={
+            "Commune": "commune",
+            "Type local": "type_local",
+            "ID": "code_commune_insee",
+            "NOM": "nom_commune_insee",
+            REVENU_COL: "revenu_median",
+        }
+    )
+
     OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     final.to_parquet(OUTPUT_FILE, index=False)
-
-    console.print(
-        Panel.fit(
-            f"Fichier généré : {OUTPUT_FILE}",
-            title="Export terminé",
-            style="bold green",
-        )
-    )
 
 
 if __name__ == "__main__":
