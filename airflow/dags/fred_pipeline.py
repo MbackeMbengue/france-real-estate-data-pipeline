@@ -12,14 +12,7 @@ with DAG(
     tags=["fred", "data-engineering"],
 ) as dag:
 
-    start = BashOperator(
-        task_id="start_pipeline",
-        bash_command="echo 'FRED Pipeline Started'",
+    run_pouvoir_achat = BashOperator(
+        task_id="run_pouvoir_achat",
+        bash_command="cd /opt/airflow && python src/pouvoir_achat.py",
     )
-
-    end = BashOperator(
-        task_id="end_pipeline",
-        bash_command="echo 'FRED Pipeline Finished'",
-    )
-
-    start >> end
