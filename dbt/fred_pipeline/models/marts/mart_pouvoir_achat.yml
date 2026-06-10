@@ -1,0 +1,35 @@
+version: 2
+
+models:
+  - name: mart_pouvoir_achat
+    description: >
+      Classement des communes de l'Essonne selon leur pouvoir
+      d'achat immobilier calculé à partir des revenus médians INSEE
+      et des prix immobiliers DVF.
+
+    columns:
+      - name: commune
+        description: Nom de la commune
+        tests:
+          - not_null
+
+      - name: type_local
+        description: Appartement ou Maison
+        tests:
+          - not_null
+
+      - name: revenu_median
+        description: Revenu médian INSEE
+        tests:
+          - not_null
+
+      - name: prix_m2_moyen
+        description: Prix moyen au mètre carré
+
+      - name: surface_achetable_m2
+        description: Surface théorique achetable avec le revenu médian
+        tests:
+          - not_null
+
+      - name: rang_surface_achetable
+        description: Classement du pouvoir d'achat immobilier

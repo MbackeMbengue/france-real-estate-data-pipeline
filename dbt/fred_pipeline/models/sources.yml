@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: fred_analytics
+    database: fred-pipeline
+    schema: fred_analytics
+    tables:
+      - name: pouvoir_achat_91
+      - name: prix_commune_91

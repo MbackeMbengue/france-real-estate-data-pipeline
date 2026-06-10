@@ -39,3 +39,8 @@ terraform/.terraform.lock.hcl
 
 # Variables sensibles
 terraform/*.tfvars
+
+# dbt
+dbt/**/target/
+dbt/**/dbt_packages/
+dbt/**/logs/
