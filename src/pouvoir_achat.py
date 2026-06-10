@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import pandas as pd
@@ -5,15 +6,17 @@ from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 
+DEPARTMENT_CODE = os.getenv("DEPARTMENT_CODE", "91")
+DEPARTMENT_NAME = os.getenv("DEPARTMENT_NAME", "Essonne")
 
 console = Console()
 
 # Chemins des fichiers utilises par le pipeline.
-PRIX_FILE = Path("data/processed/prix_commune_91.parquet")
+PRIX_FILE = Path(f"data/processed/prix_commune_{DEPARTMENT_CODE}.parquet")
 INSEE_FILE = Path(
     "data/raw/indicateurs-territoriaux-de-precarite-par-commune-epci-departement-et-region.csv"
 )
-OUTPUT_FILE = Path("data/processed/pouvoir_achat_91.parquet")
+OUTPUT_FILE = Path(f"data/processed/pouvoir_achat_{DEPARTMENT_CODE}.parquet")
 
 REVENU_COL = "Revenu médian (Insee FiLoSoFi 2021)"
 
@@ -49,7 +52,7 @@ def normalize_city_name(value: str) -> str:
 
 
 def display_top_surface(df: pd.DataFrame) -> None:
-    """Affiche les communes du 91 avec la meilleure surface
+    """Affiche les communes du département {DEPARTMENT_NAME} avec la meilleure surface
        achetable pour un revenu médian donné."""
     top = (
         df[df["nb_ventes"] >= 20]
@@ -83,7 +86,7 @@ def main() -> None:
     """Point d'entrée du script de calcul du pouvoir d'achat immobilier."""
     console.print(
         Panel.fit(
-            "Calcul du pouvoir d'achat immobilier - Essonne 91",
+            f"Calcul du pouvoir d'achat immobilier - {DEPARTMENT_NAME} {DEPARTMENT_CODE}",
             title="FRED Phase 2",
             style="bold blue",
         )
@@ -93,16 +96,16 @@ def main() -> None:
 
     insee = pd.read_csv(INSEE_FILE, sep=";", encoding="utf-8")
 
-    insee_91 = insee[
+    insee_dpt = insee[
         (insee["Niveau géographique"] == "Commune")
-        & (insee["ID"].astype(str).str.startswith("91"))
+        & (insee["ID"].astype(str).str.startswith(DEPARTMENT_CODE))
     ][["ID", "NOM", REVENU_COL]].copy()
 
     prix_commune["commune_key"] = prix_commune["Commune"].apply(normalize_city_name)
-    insee_91["commune_key"] = insee_91["NOM"].apply(normalize_city_name)
+    insee_dpt["commune_key"] = insee_dpt["NOM"].apply(normalize_city_name)
 
     final = prix_commune.merge(
-        insee_91,
+        insee_dpt,
         on="commune_key",
         how="left",
     )
