@@ -3,33 +3,44 @@ version: 2
 models:
   - name: mart_pouvoir_achat
     description: >
-      Classement des communes de l'Essonne selon leur pouvoir
-      d'achat immobilier calculé à partir des revenus médians INSEE
-      et des prix immobiliers DVF.
+      Classement des communes d'Île-de-France selon leur pouvoir d'achat
+      immobilier : nombre de m² qu'une année de revenu médian INSEE permet
+      d'acheter au prix médian DVF. Communes avec au moins 20 ventes.
 
     columns:
-      - name: commune
-        description: Nom de la commune
+      - name: departement
         tests:
           - not_null
-
+      - name: code_commune
+        description: Code INSEE (arrondissement pour Paris, Lyon, Marseille)
+        tests:
+          - not_null
+      - name: commune
+        description: Nom de la commune dans DVF
       - name: type_local
         description: Appartement ou Maison
         tests:
           - not_null
-
-      - name: revenu_median
-        description: Revenu médian INSEE
+          - accepted_values:
+              arguments:
+                values: ['Appartement', 'Maison']
+      - name: nb_ventes
+        description: Nombre de ventes d'un logement unique retenues
+      - name: prix_m2_median
+        description: Prix médian au m² (base de l'indicateur)
         tests:
           - not_null
-
       - name: prix_m2_moyen
-        description: Prix moyen au mètre carré
-
-      - name: surface_achetable_m2
-        description: Surface théorique achetable avec le revenu médian
+        description: Prix moyen au m², pour information
+      - name: revenu_median
+        description: Revenu médian annuel INSEE FiLoSoFi
         tests:
           - not_null
-
-      - name: rang_surface_achetable
-        description: Classement du pouvoir d'achat immobilier
+      - name: surface_achetable_m2
+        description: revenu_median / prix_m2_median
+        tests:
+          - not_null
+      - name: rang_surface_achetable_idf
+        description: Rang en Île-de-France, par type de logement (1 = meilleur pouvoir d'achat)
+      - name: rang_surface_achetable_departement
+        description: Rang dans le département, par type de logement

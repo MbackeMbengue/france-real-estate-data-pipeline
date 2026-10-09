@@ -3,6 +3,8 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+.pytest_cache/
+.ruff_cache/
 
 # Virtual environment
 .venv/
@@ -27,9 +29,9 @@ data/processed/*
 # Parquet temporaires
 *.tmp
 
-#Garder les dossiers
-!data/raw/ .gitkeep
-!data/processed/ .gitkeep
+# Garder les dossiers
+!data/raw/.gitkeep
+!data/processed/.gitkeep
 
 # Terraform
 terraform/.terraform/
@@ -44,3 +46,7 @@ terraform/*.tfvars
 dbt/**/target/
 dbt/**/dbt_packages/
 dbt/**/logs/
+
+# Airflow (logs et plugins générés localement)
+airflow/logs/
+airflow/plugins/
