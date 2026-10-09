@@ -1,15 +1,37 @@
-Welcome to your new dbt project!
+# dbt - fred_pipeline
 
-### Using the starter project
+Transformations BigQuery du projet FRED.
 
-Try running the following commands:
-- dbt run
-- dbt test
+```
+source fred_analytics.pouvoir_achat   (chargée par Airflow)
+        │
+        ▼
+staging/stg_pouvoir_achat   (vue : typage, tests de base)
+        │
+        ▼
+marts/mart_pouvoir_achat    (table : classement IDF et par département)
+```
 
+## Profil
 
-### Resources:
-- Learn more about dbt [in the docs](https://docs.getdbt.com/docs/introduction)
-- Check out [Discourse](https://discourse.getdbt.com/) for commonly asked questions and answers
-- Join the [chat](https://community.getdbt.com/) on Slack for live discussions and support
-- Find [dbt events](https://events.getdbt.com) near you
-- Check out [the blog](https://blog.getdbt.com/) for the latest news on dbt's development and best practices
+Exemple de `~/.dbt/profiles.yml` (authentification gcloud locale) :
+
+```yaml
+fred_pipeline:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: fred-pipeline
+      dataset: fred_analytics
+      location: EU
+      threads: 4
+```
+
+## Commandes
+
+```bash
+dbt build                       # modèles + tests
+dbt build --vars '{min_ventes: 30}'
+```

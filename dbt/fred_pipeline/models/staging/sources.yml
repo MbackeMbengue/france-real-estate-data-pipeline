@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: fred_analytics
+    description: Tables chargées par le DAG Airflow fred_pipeline_idf (tous départements).
+    database: fred-pipeline
+    schema: fred_analytics
+    tables:
+      - name: prix_commune
+        description: Prix au m² DVF par commune et type de logement.
+      - name: pouvoir_achat
+        description: Prix DVF joints aux revenus médians INSEE, par commune et type de logement.

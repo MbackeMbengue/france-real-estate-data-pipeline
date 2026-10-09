@@ -1,0 +1,22 @@
+version: 2
+
+models:
+  - name: stg_pouvoir_achat
+    description: Typage de la table pouvoir_achat (une ligne par commune DVF et type de logement).
+    columns:
+      - name: departement
+        tests:
+          - not_null
+      - name: code_commune
+        description: Code INSEE de la commune DVF (arrondissement pour Paris, Lyon, Marseille).
+        tests:
+          - not_null
+      - name: type_local
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Appartement', 'Maison']
+      - name: nb_ventes
+        tests:
+          - not_null

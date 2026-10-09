@@ -9,7 +9,7 @@ terraform {
 
 provider "google" {
   project = var.project_id
-  region  = "europe-west1"
+  region  = var.gcp_region
 }
 
 resource "google_storage_bucket" "data_lake" {

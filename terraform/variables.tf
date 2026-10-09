@@ -3,8 +3,14 @@ variable "project_id" {
   type        = string
 }
 
+variable "gcp_region" {
+  description = "Région GCP par défaut du provider (ressources régionales)"
+  type        = string
+  default     = "europe-west1"
+}
+
 variable "region" {
-  description = "GCP region"
+  description = "Localisation du bucket GCS et du dataset BigQuery (multi-région EU)"
   type        = string
   default     = "EU"
 }
